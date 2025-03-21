@@ -1,0 +1,2279 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Quicksand:wght@300;400;500;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Quicksand', sans-serif;
+            color: #5d6e4e;
+            background-color: #f9f7f1;
+        }
+
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 320px;
+            color: #5d6e4e;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(160, 197, 156, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        .info-panel h1 {
+            margin-top: 0;
+            font-size: 1.8em;
+            font-family: 'Noto Serif', serif;
+            color: #5d6e4e;
+            margin-bottom: 10px;
+            border-bottom: 2px solid rgba(160, 197, 156, 0.5);
+            padding-bottom: 8px;
+        }
+
+        .info-panel p {
+            font-size: 0.95em;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .navigation {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 12px 25px;
+            border-radius: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(160, 197, 156, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        .nav-button {
+            background-color: #a0c59c;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+
+        .nav-button:hover {
+            background-color: #b8d4b2;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 25px 40px;
+            border-radius: 15px;
+            font-family: 'Noto Serif', serif;
+            color: #5d6e4e;
+            font-size: 1.5em;
+            text-align: center;
+            z-index: 200;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .project-info {
+            position: absolute;
+            bottom: 100px;
+            right: 30px;
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 300px;
+            max-height: 400px;
+            /* Hauteur maximale */
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.5s ease;
+            pointer-events: none;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(160, 197, 156, 0.3);
+            backdrop-filter: blur(5px);
+            overflow: hidden;
+            /* Cache tout contenu qui dépasse */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .project-info.visible {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .project-info h3 {
+            font-family: 'Noto Serif', serif;
+            margin-top: 0;
+            color: #5d6e4e;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            border-bottom: 2px solid rgba(160, 197, 156, 0.5);
+            padding-bottom: 8px;
+        }
+
+        .project-info .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+            color: #5d6e4e;
+        }
+
+        .project-info p {
+            white-space: pre-line;
+            /* Pour respecter les sauts de ligne */
+            overflow-y: auto;
+            /* Ajoute une barre de défilement verticale si nécessaire */
+            padding-right: 8px;
+            /* Espace pour la barre de défilement */
+            margin-bottom: 15px;
+            /* Espace avant le bouton éventuel */
+            flex-grow: 1;
+            /* Permet au texte d'utiliser tout l'espace disponible */
+        }
+
+        /* Style pour la barre de défilement */
+        .project-info p::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .project-info p::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+
+        .project-info p::-webkit-scrollbar-thumb {
+            background: rgba(160, 197, 156, 0.5);
+            border-radius: 10px;
+        }
+
+        .project-info p::-webkit-scrollbar-thumb:hover {
+            background: rgba(160, 197, 156, 0.7);
+        }
+
+        .video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .video-overlay.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .video-overlay video {
+            min-width: 800px;
+            min-height: 450px;
+            max-width: 90%;
+            max-height: 85vh;
+            object-fit: contain;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+        }
+
+        .video-overlay .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: none;
+            border: none;
+            font-size: 2em;
+            color: white;
+            cursor: pointer;
+            z-index: 201;
+            transition: transform 0.2s;
+        }
+
+        .video-overlay .close-btn:hover {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading" class="loading">Chargement de votre univers...</div>
+
+    <div class="info-panel">
+        <h1>Mon Portfolio 3D</h1>
+        <p>Explorez mes créations dans une ambiance apaisante qui mélange douceur et imagination.</p>
+        <p>Utilisez la souris pour regarder autour de vous. Cliquez sur les éléments interactifs pour découvrir mes
+            projets.</p>
+        <p> Cliquez sur le livre pour avoir toutes les informations</p>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-button" data-section="hill">Colline Fleurie</button>
+        <button class="nav-button" data-section="hub">Pavillon Central</button>
+        <button class="nav-button" data-section="pond">Étang aux Nénuphars</button>
+    </div>
+
+    <div id="video-container" class="video-overlay">
+        <button class="close-btn">&times;</button>
+        <video id="project-video" controls>
+            <source src="chateau_video.mp4" type="video/mp4">
+            Votre navigateur ne supporte pas la vidéo HTML5.
+        </video>
+    </div>
+
+    <div id="project-info" class="project-info">
+        <button class="close-btn">&times;</button>
+        <h3>Titre du projet</h3>
+        <p>Description du projet...</p>
+    </div>
+
+    <!-- Chargement des bibliothèques Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r132/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
+
+    <script>
+        // Variables globales
+        let scene, camera, renderer, controls;
+        let ground;
+        let sections = {
+            hub: new THREE.Group(),
+            pond: new THREE.Group(),
+            hill: new THREE.Group()
+        };
+        let currentSection = 'hub';
+        let projectInfo = document.getElementById('project-info');
+        let clock = new THREE.Clock();
+
+        // Projets
+        const projects = {
+            portfolio: {
+                title: "Mon Portfolio",
+                description: "Bienvenue dans mon univers 3D.\n\nJe suis Dounia Hullot étudiante en informatique.\n\nJ'ai créé ce portfolio en Three.js pour partager mes projets de modélisation et d'animation 3D.\n\nCôté colline fleurit vous trouverez une longue vu qui vous permet d'avoir un zoom sur une maquette surplombant la colline, elle contient une animation effectué avec unreal ungine.\n\nIci un temple et plusieurs arbres de cerisier fait en three.js.\n\nEnfin, côté étang aux nénuphars, vous pourrez observer un étang paisible avec des modèles 3D effectué avec Blender.",
+            },
+            modelisation: {
+                title: "Modélisation 3D",
+                description: "Ce projet explore les possibilités créatives de la modélisation 3D.\nJ'ai conçu des objets variés avec Blender pour développer mes compétences.\nVous pouvez voir ici mes créations: bateaux en papier, grenouille et lanternes traditionnelles."
+            },
+            levelDesign: {
+                title: "Animation Unreal Engine",
+                description: "Cette maquette représente une scène unreal engine que j'ai conçu.\nCliquez pour voir l'animation complète de ce projet."
+            },
+            telescope: {
+                title: "Vision Détaillée",
+                description: "Cette longue-vue permet d'observer les détails de mes créations.\nDans mes projets, j'accorde une importance particulière aux petits éléments qui enrichissent l'expérience globale.\nCliquez ici ou sur le chateau pour voir une démonstration."
+            },
+            tree: {
+                title: "Arbres de Cerisier",
+                description: "Des arbres cerisiers entourant le petit temple.\nInspirés par les lieux sacrés dans 'Princesse Mononoké', j'ai voulu capturer cette sensation de connexion spirituelle avec la nature.\nJ'ai modélisé chaque détail pour créer cette ambiance apaisante."
+            },
+            architecture: {
+                title: "Temple Traditionnel",
+                description: "Cette structure explore l'équilibre entre fonction et forme.\nJ'ai conçu ce temple en m'inspirant de l'architecture traditionnelle japonaise, avec une attention particulière à l'harmonie avec la nature environnante.\nLes détails architecturaux reflètent un style épuré et élégant."
+            }
+        };
+
+        // Initialisation
+        function init() {
+            // Création de la scène
+            scene = new THREE.Scene();
+            // Exposer la scène globalement pour permettre l'accès depuis d'autres fonctions
+            window.scene = scene;
+
+            scene.background = new THREE.Color(0xd9faff);
+            scene.fog = new THREE.FogExp2(0xd9faff, 0.01);
+
+            // Création de la caméra
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 2, 8);
+
+            // Création du renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            document.body.appendChild(renderer.domElement);
+
+            // Mise en place des contrôles
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 3;
+            controls.maxDistance = 30;
+            controls.maxPolarAngle = Math.PI / 2; // Empêche de passer sous le sol
+
+            // Configurer l'éclairage
+            setupLighting();
+
+            // Créer le terrain
+            createGround();
+
+            // Ajouter les groupes à la scène
+            Object.values(sections).forEach(group => {
+                scene.add(group);
+            });
+
+            // Création des différentes sections
+            createMainHub(sections.hub);
+            createPondSection(sections.pond);
+            createHillSection(sections.hill);
+
+            // Gestion du redimensionnement
+            window.addEventListener('resize', onWindowResize);
+
+            // Gestion de la navigation entre sections
+            document.querySelectorAll('.nav-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const section = button.getAttribute('data-section');
+                    navigateToSection(section);
+                });
+            });
+
+            // Fermer le panneau d'information projet
+            document.querySelector('.project-info .close-btn').addEventListener('click', () => {
+                projectInfo.classList.remove('visible');
+            });
+
+            // Configuration du raycaster pour les interactions
+            setupRaycaster();
+
+            // Masquer l'écran de chargement
+            document.getElementById('loading').style.display = 'none';
+
+            // Lancer l'animation
+            animate();
+        }
+
+        // Configuration de l'éclairage
+        function setupLighting() {
+            // Lumière ambiante
+            const ambientLight = new THREE.AmbientLight(0xfff1e6, 0.6);
+            scene.add(ambientLight);
+
+            // Lumière directionnelle (soleil)
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.4);
+            dirLight.position.set(5, 10, 7);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+
+            const d = 20;
+            dirLight.shadow.camera.left = -d;
+            dirLight.shadow.camera.right = d;
+            dirLight.shadow.camera.top = d;
+            dirLight.shadow.camera.bottom = -d;
+            dirLight.shadow.camera.far = 50;
+
+            scene.add(dirLight);
+
+            // Lumière hémisphérique pour la lumière ambiante du ciel
+            const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.3);
+            hemiLight.position.set(0, 50, 0);
+            scene.add(hemiLight);
+        }
+
+        // Création du sol
+        function createGround() {
+            // Terrain principal
+            const groundGeometry = new THREE.PlaneGeometry(1000, 1000, 32, 32);
+
+            // Déformer légèrement le terrain pour plus de naturel
+            const positions = groundGeometry.attributes.position.array;
+            for (let i = 0; i < positions.length; i += 3) {
+                const x = positions[i];
+                const y = positions[i + 1];
+                positions[i + 2] = Math.sin(x * 0.1) * Math.sin(y * 0.1) * 0.5;
+            }
+
+            groundGeometry.computeVertexNormals();
+
+            const groundMaterial = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                roughness: 0.9,
+                metalness: 0.05
+            });
+
+            ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+        }
+
+        // Fonction pour créer le hub principal avec le pavillon japonais
+        function createMainHub(parent) {
+            // Créer le pavillon japonais
+            const pavilion = createJapanesePavilion();
+            pavilion.userData.isInteractive = true;
+            pavilion.userData.projectKey = 'architecture';
+            parent.add(pavilion);
+
+            // Ajouter des cerisiers en fleurs
+            createCherryBlossomTrees(parent);
+
+            // Ajouter des herbes hautes
+            createTallGrass(parent);
+
+            // Ajouter une table basse avec livre interactif
+            createInteractiveBook(parent);
+
+            // Ajouter un système de particules pour les pétales de fleurs
+            createPetalParticles(parent);
+
+            // Positionner le hub
+            parent.position.set(0, 0, 0);
+        }
+
+        // Fonction pour créer le pavillon japonais
+        function createJapanesePavilion() {
+            const pavilion = new THREE.Group();
+
+            // Base en bois (plateforme surélevée)
+            const baseGeometry = new THREE.BoxGeometry(6, 0.3, 6);
+            const baseMaterial = new THREE.MeshStandardMaterial({
+                color: 0x8B4513,
+                roughness: 0.8,
+                metalness: 0.1
+            });
+            const base = new THREE.Mesh(baseGeometry, baseMaterial);
+            base.position.y = 0.15;
+            base.receiveShadow = true;
+            pavilion.add(base);
+
+            // Piliers en bois
+            const pillarPositions = [
+                [-2.5, 0, -2.5],
+                [2.5, 0, -2.5],
+                [-2.5, 0, 2.5],
+                [2.5, 0, 2.5]
+            ];
+
+            pillarPositions.forEach(pos => {
+                const pillarGeometry = new THREE.CylinderGeometry(0.15, 0.15, 2.5, 8);
+                const pillarMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x8B4513,
+                    roughness: 0.7,
+                    metalness: 0.1
+                });
+                const pillar = new THREE.Mesh(pillarGeometry, pillarMaterial);
+                pillar.position.set(pos[0], 1.4, pos[1]);
+                pillar.castShadow = true;
+                pavilion.add(pillar);
+            });
+
+            // Toit avec bords incurvés caractéristiques
+            const roofGroup = new THREE.Group();
+
+            // Base principale du toit
+            const roofBaseGeometry = new THREE.BoxGeometry(7, 0.2, 7);
+            const roofBaseMaterial = new THREE.MeshStandardMaterial({
+                color: 0x5D4037,
+                roughness: 0.9,
+                metalness: 0.1
+            });
+            const roofBase = new THREE.Mesh(roofBaseGeometry, roofBaseMaterial);
+            roofBase.position.y = 2.5;
+            roofBase.castShadow = true;
+            roofGroup.add(roofBase);
+
+            // Partie incurvée du toit (pyramide aplatie)
+            const roofTopGeometry = new THREE.ConeGeometry(5, 1.5, 4);
+            const roofTopMaterial = new THREE.MeshStandardMaterial({
+                color: 0x4E342E,
+                roughness: 0.9,
+                metalness: 0.1
+            });
+            const roofTop = new THREE.Mesh(roofTopGeometry, roofTopMaterial);
+            roofTop.position.y = 3.3;
+            roofTop.rotation.y = Math.PI / 4; // Rotation pour aligner avec la base
+            roofTop.castShadow = true;
+            roofGroup.add(roofTop);
+
+            // Bords incurvés du toit
+            for (let i = 0; i < 4; i++) {
+                const angle = (i / 4) * Math.PI * 2;
+                const curveGeometry = new THREE.BoxGeometry(7, 0.1, 1);
+                curveGeometry.translate(0, 0, -0.5); // Déplacer pour faciliter la rotation
+
+                const curve = new THREE.Mesh(curveGeometry, roofBaseMaterial);
+                curve.position.y = 2.4;
+                curve.rotation.y = angle;
+
+                // Donner une légère courbure vers le haut aux bords
+                curve.rotation.x = -0.2;
+                roofGroup.add(curve);
+            }
+
+            pavilion.add(roofGroup);
+
+            // Ajouter un plancher en bois à l'intérieur
+            const floorGeometry = new THREE.PlaneGeometry(5.8, 5.8);
+            const floorMaterial = new THREE.MeshStandardMaterial({
+                color: 0xA1887F,
+                roughness: 0.8,
+                metalness: 0.1,
+                side: THREE.DoubleSide
+            });
+
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = 0.31;
+            pavilion.add(floor);
+
+            return pavilion;
+        }
+
+        // Fonction pour créer des cerisiers en fleurs (VERSION AMÉLIORÉE)
+        function createCherryBlossomTrees(parent) {
+            const treeCount = 5;
+
+            for (let i = 0; i < treeCount; i++) {
+                const tree = new THREE.Group();
+
+                // Ajouter l'interaction pour tous les arbres
+                tree.userData.isInteractive = true;
+                tree.userData.projectKey = 'tree';
+
+                // Tronc avec texture d'écorce
+                const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.3, 3, 8);
+                const trunkMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x6D4C41,
+                    roughness: 0.9,
+                    metalness: 0.1
+                });
+
+                // Déformer légèrement le tronc
+                const positions = trunkGeometry.attributes.position.array;
+                for (let j = 0; j < positions.length; j += 3) {
+                    const theta = Math.atan2(positions[j], positions[j + 2]);
+                    const radius = Math.sqrt(positions[j] ** 2 + positions[j + 2] ** 2);
+
+                    // Ajouter de petites irrégularités
+                    positions[j] += Math.sin(theta * 2 + positions[j + 1]) * 0.03;
+                    positions[j + 2] += Math.cos(theta * 2 + positions[j + 1]) * 0.03;
+                }
+                trunkGeometry.computeVertexNormals();
+
+                const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+                trunk.position.y = 1.5;
+                trunk.castShadow = true;
+                trunk.receiveShadow = true;
+                tree.add(trunk);
+
+                // Branches
+                const branchCount = 3 + Math.floor(Math.random() * 3);
+
+                for (let j = 0; j < branchCount; j++) {
+                    const branchGeometry = new THREE.CylinderGeometry(0.05, 0.08, 1.2, 5);
+                    branchGeometry.translate(0, 0.6, 0); // Déplacer pour que la branche parte du tronc
+
+                    const branch = new THREE.Mesh(branchGeometry, trunkMaterial);
+
+                    // Position sur le tronc
+                    const height = 1 + Math.random() * 1.5;
+                    const angle = (j / branchCount) * Math.PI * 2 + Math.random() * 0.5;
+                    branch.position.set(0, height, 0);
+
+                    // Orienter la branche vers l'extérieur
+                    branch.rotation.z = Math.PI / 2.5 + (Math.random() - 0.5) * 0.2;
+                    branch.rotation.y = angle;
+
+                    branch.castShadow = true;
+                    tree.add(branch);
+
+                    // Create improved flower clusters
+                    createFlowerCluster(branch, 1.2, 0.3);
+                }
+
+                // Add some larger clusters to the trunk
+                createFlowerCluster(trunk, 2.0, 0.5);
+                createFlowerCluster(trunk, 1.8, -0.5);
+
+                // Positionner l'arbre autour du pavillon
+                const angle = (i / treeCount) * Math.PI * 2 + Math.random() * 0.5;
+                const radius = 12 + Math.random() * 4;
+
+                tree.position.set(
+                    Math.cos(angle) * radius,
+                    0,
+                    Math.sin(angle) * radius
+                );
+
+                // Taille variable
+                const scale = 0.9 + Math.random() * 0.4;
+                tree.scale.set(scale, scale, scale);
+
+                parent.add(tree);
+            }
+        }
+
+        // Nouvelle fonction pour créer des grappes de fleurs plus naturelles
+        function createFlowerCluster(parentObject, offset, yOffset) {
+            // Create a group for the flower cluster
+            const clusterGroup = new THREE.Group();
+
+            // Number of flowers in this cluster
+            const flowerCount = 5 + Math.floor(Math.random() * 8);
+            const clusterRadius = 0.3 + Math.random() * 0.2;
+
+            for (let i = 0; i < flowerCount; i++) {
+                // Create individual flower
+                const flowerGroup = new THREE.Group();
+
+                // Create larger, more natural looking flowers
+                // Each flower has multiple layers of petals
+                const layerCount = 2 + Math.floor(Math.random() * 2);
+
+                for (let layer = 0; layer < layerCount; layer++) {
+                    const petalCount = 5 + Math.floor(Math.random() * 3);
+                    const layerScale = 1 - (layer * 0.15); // Each layer is slightly smaller
+
+                    for (let p = 0; p < petalCount; p++) {
+                        // Create petal geometry - flatter and more oval shaped
+                        const petalGeometry = new THREE.SphereGeometry(0.12, 8, 8);
+                        petalGeometry.scale(1.2, 0.4, 1.2); // Make petals more flat and oval
+
+                        // Vary petal colors slightly
+                        const intensity = 0.95 + Math.random() * 0.05;
+                        const petalMaterial = new THREE.MeshStandardMaterial({
+                            color: new THREE.Color(0xffe9fd).multiplyScalar(intensity),
+                            roughness: 0.5,
+                            metalness: 0.1
+                        });
+
+                        const petal = new THREE.Mesh(petalGeometry, petalMaterial);
+
+                        // Position petal in a circle
+                        const petalAngle = (p / petalCount) * Math.PI * 2;
+                        const petalRadius = 0.12 * layerScale;
+
+                        petal.position.set(
+                            Math.cos(petalAngle) * petalRadius,
+                            layer * 0.02, // Stack layers with a small offset
+                            Math.sin(petalAngle) * petalRadius
+                        );
+
+                        // Angle the petal outward slightly
+                        petal.rotation.x = Math.PI / 6;
+                        petal.rotation.y = petalAngle;
+
+                        petal.castShadow = true;
+                        flowerGroup.add(petal);
+                    }
+                }
+
+                // Add a center
+                const centerGeometry = new THREE.SphereGeometry(0.08, 8, 8);
+                const centerMaterial = new THREE.MeshStandardMaterial({
+                    color: 0xFFF176,
+                    roughness: 0.5,
+                    metalness: 0.1
+                });
+
+                const center = new THREE.Mesh(centerGeometry, centerMaterial);
+                center.position.y = 0.04; // Raise slightly above petals
+                flowerGroup.add(center);
+
+                // Position the flower within the cluster using spherical distribution
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1); // Distribution uniforme sur une sphère
+                const r = clusterRadius * Math.cbrt(Math.random());
+
+                flowerGroup.position.set(
+                    r * Math.sin(phi) * Math.cos(theta),
+                    r * Math.cos(phi) + (yOffset || 0),
+                    r * Math.sin(phi) * Math.sin(theta)
+                );
+
+                // Randomize orientation
+                flowerGroup.rotation.x = Math.random() * Math.PI * 0.5;
+                flowerGroup.rotation.y = Math.random() * Math.PI * 2;
+                flowerGroup.rotation.z = Math.random() * Math.PI * 0.5;
+
+                // Add animation for gentle movement
+                flowerGroup.userData.animationParams = {
+                    initialRotation: {
+                        x: flowerGroup.rotation.x,
+                        y: flowerGroup.rotation.y,
+                        z: flowerGroup.rotation.z
+                    },
+                    phase: Math.random() * Math.PI * 2,
+                    speed: 0.3 + Math.random() * 0.3,
+                    amplitude: 0.05
+                };
+
+                clusterGroup.add(flowerGroup);
+            }
+
+            // Position the entire cluster
+            clusterGroup.position.set(offset * 0.8, 0, 0);
+
+            // Add the cluster to the parent
+            parentObject.add(clusterGroup);
+        }
+
+        // Fonction pour créer des hautes herbes
+        function createTallGrass(parent) {
+            const grassCount = 200;
+
+            for (let i = 0; i < grassCount; i++) {
+                const bladeGroup = new THREE.Group();
+
+                // Créer une lame d'herbe (rectangle fin et courbé)
+                const height = 0.3 + Math.random() * 0.4;
+                const width = 0.05 + Math.random() * 0.03;
+
+                const bladeGeometry = new THREE.PlaneGeometry(width, height, 1, 4);
+
+                // Courber la lame d'herbe
+                const positions = bladeGeometry.attributes.position.array;
+                for (let j = 0; j < positions.length; j += 3) {
+                    const y = positions[j + 1];
+                    const normalizedY = (y + height / 2) / height; // 0 à la base, 1 au sommet
+
+                    // Appliquer une courbure
+                    positions[j] += Math.pow(normalizedY, 2) * (Math.random() - 0.5) * 0.2;
+                }
+
+                bladeGeometry.computeVertexNormals();
+
+                // Variation de couleurs pour plus de naturel
+                const hue = 0.25 + (Math.random() - 0.5) * 0.1; // Vert
+                const saturation = 0.5 + Math.random() * 0.2;
+                const lightness = 0.4 + Math.random() * 0.2;
+
+                const color = new THREE.Color().setHSL(hue, saturation, lightness);
+
+                const bladeMaterial = new THREE.MeshStandardMaterial({
+                    color: color,
+                    roughness: 0.8,
+                    metalness: 0.1,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.9
+                });
+
+                const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
+                blade.position.y = height / 2;
+                blade.castShadow = true;
+                blade.receiveShadow = true;
+
+                bladeGroup.add(blade);
+
+                // Position aléatoire dans un cercle autour du pavillon
+                const angle = Math.random() * Math.PI * 2;
+                const radius = 3 + Math.random() * 8;
+
+                bladeGroup.position.set(
+                    Math.cos(angle) * radius,
+                    0,
+                    Math.sin(angle) * radius
+                );
+
+                // Rotation aléatoire
+                bladeGroup.rotation.y = Math.random() * Math.PI * 2;
+
+                // Animation de balancement
+                bladeGroup.userData.animationParams = {
+                    initialRotation: {
+                        x: bladeGroup.rotation.x,
+                        z: bladeGroup.rotation.z
+                    },
+                    phase: Math.random() * Math.PI * 2,
+                    speed: 0.5 + Math.random() * 0.5,
+                    amplitude: 0.05 + Math.random() * 0.05
+                };
+
+                parent.add(bladeGroup);
+            }
+        }
+
+        // Fonction pour créer un système de particules de pétales
+        function createPetalParticles(parent) {
+            const particleCount = 100;
+            const particleGroup = new THREE.Group();
+
+            for (let i = 0; i < particleCount; i++) {
+                // Créer un pétale (petit plan texturé)
+                const petalGeometry = new THREE.PlaneGeometry(0.1, 0.1);
+                const petalMaterial = new THREE.MeshStandardMaterial({
+                    color: 0xFCE4EC,
+                    transparent: true,
+                    opacity: 0.8,
+                    side: THREE.DoubleSide
+                });
+
+                const petal = new THREE.Mesh(petalGeometry, petalMaterial);
+
+                // Position aléatoire dans un grand volume
+                petal.position.set(
+                    (Math.random() - 0.5) * 30,
+                    5 + Math.random() * 10,
+                    (Math.random() - 0.5) * 30
+                );
+
+                // Rotation aléatoire
+                petal.rotation.set(
+                    Math.random() * Math.PI,
+                    Math.random() * Math.PI,
+                    Math.random() * Math.PI
+                );
+
+                // Paramètres d'animation
+                petal.userData = {
+                    velocity: {
+                        x: (Math.random() - 0.5) * 0.1,
+                        y: -0.05 - Math.random() * 0.05,
+                        z: (Math.random() - 0.5) * 0.1
+                    },
+                    rotation: {
+                        x: (Math.random() - 0.5) * 0.01,
+                        y: (Math.random() - 0.5) * 0.01,
+                        z: (Math.random() - 0.5) * 0.01
+                    },
+                    initialY: 5 + Math.random() * 10
+                };
+
+                particleGroup.add(petal);
+            }
+
+            parent.add(particleGroup);
+            return particleGroup;
+        }
+
+        // Fonction pour créer le livre interactif (VERSION CORRIGÉE)
+        function createInteractiveBook(parent) {
+            const tableGroup = new THREE.Group();
+
+            // Table basse
+            const tableGeometry = new THREE.BoxGeometry(1.5, 0.1, 1);
+            const tableMaterial = new THREE.MeshStandardMaterial({
+                color: 0x5D4037,
+                roughness: 0.8,
+                metalness: 0.1
+            });
+
+            const table = new THREE.Mesh(tableGeometry, tableMaterial);
+            table.position.y = 0.35;
+            table.castShadow = true;
+            table.receiveShadow = true;
+            tableGroup.add(table);
+
+            // Pieds de la table
+            const legGeometry = new THREE.CylinderGeometry(0.03, 0.03, 0.3, 8);
+            const legMaterial = new THREE.MeshStandardMaterial({
+                color: 0x4E342E,
+                roughness: 0.9,
+                metalness: 0.1
+            });
+
+            const legPositions = [
+                [-0.7, 0, -0.45],
+                [0.7, 0, -0.45],
+                [-0.7, 0, 0.45],
+                [0.7, 0, 0.45]
+            ];
+
+            legPositions.forEach(pos => {
+                const leg = new THREE.Mesh(legGeometry, legMaterial);
+                leg.position.set(pos[0], 0.2, pos[1]);
+                leg.castShadow = true;
+                tableGroup.add(leg);
+            });
+
+            // Livre interactif
+            const bookGroup = new THREE.Group();
+
+            // Base du livre (pages)
+            const bookGeometry = new THREE.BoxGeometry(0.8, 0.05, 0.6);
+            const bookMaterial = new THREE.MeshStandardMaterial({
+                color: 0xF5F5F5,
+                roughness: 0.5,
+                metalness: 0.1
+            });
+
+            const book = new THREE.Mesh(bookGeometry, bookMaterial);
+            book.castShadow = true;
+            bookGroup.add(book);
+
+            // Couverture du livre
+            const coverGeometry = new THREE.BoxGeometry(0.83, 0.02, 0.63);
+            const coverMaterial = new THREE.MeshStandardMaterial({
+                color: 0x795548,
+                roughness: 0.7,
+                metalness: 0.1
+            });
+
+            const cover = new THREE.Mesh(coverGeometry, coverMaterial);
+            cover.position.y = 0.035;
+            cover.castShadow = true;
+            bookGroup.add(cover);
+
+            // Texte sur la couverture
+            const titleGeometry = new THREE.PlaneGeometry(0.7, 0.1);
+            const titleMaterial = new THREE.MeshBasicMaterial({
+                transparent: true,
+                opacity: 0.9,
+                color: 0xDEDEDE
+            });
+
+            const title = new THREE.Mesh(titleGeometry, titleMaterial);
+            title.position.set(0, 0.04, 0);
+            title.rotation.x = -Math.PI / 2;
+            bookGroup.add(title);
+
+            // Positionner le livre sur la table
+            bookGroup.position.y = 0.45;
+            bookGroup.rotation.y = Math.PI / 6; // Légèrement tourné
+            tableGroup.add(bookGroup);
+
+            // Rendre le livre interactif
+            bookGroup.userData.isInteractive = true;
+            bookGroup.userData.projectKey = 'portfolio';
+
+            // Animation subtile pour attirer l'attention
+            bookGroup.userData.animationParams = {
+                initialY: bookGroup.position.y,
+                phase: 0,
+                speed: 0.6,
+                amplitude: 0.02
+            };
+
+            // Positionner la table au centre du pavillon
+            tableGroup.position.set(0, 0, 0);
+            parent.add(tableGroup);
+
+            return tableGroup;
+        }
+
+        // Ajouter des bateaux en papier dans différents endroits de l'étang
+        function addPaperBoats(parent, pondRadius) {
+            // Positions pour les trois bateaux (répartis autour de l'étang)
+            const boatPositions = [
+                { x: -3, y: 0.6, z: 2, scale: 0.5, rotation: Math.PI / 6 },
+                { x: 1, y: 0.6, z: -4, scale: 0.5, rotation: Math.PI / 3 },
+                { x: 3, y: 0.6, z: 6, scale: 0.8, rotation: -Math.PI / 4 }
+            ];
+
+            // Charger le modèle de bateau en papier
+            const loader = new THREE.GLTFLoader();
+
+            boatPositions.forEach((pos, index) => {
+                loader.load(
+                    'objets_3D/Bateau/bateau.glb',
+                    function (gltf) {
+                        const boat = gltf.scene;
+
+                        // Appliquer position, échelle et rotation
+                        boat.position.set(pos.x, pos.y, pos.z);
+                        boat.scale.set(pos.scale, pos.scale, pos.scale);
+                        boat.rotation.y = pos.rotation;
+
+                        // Rendre le bateau interactif
+                        boat.userData.isInteractive = true;
+                        boat.userData.projectKey = 'modelisation';
+
+                        // Ajouter une animation de flottement avec des paramètres légèrement différents 
+                        boat.userData.animationParams = {
+                            initialY: pos.y,
+                            phase: Math.random() * Math.PI * 2,
+                            speed: 0.3 + Math.random() * 0.2,
+                            amplitude: 0.01 + Math.random() * 0.01
+                        };
+
+                        // Activer les ombres
+                        boat.traverse(function (object) {
+                            if (object.isMesh) {
+                                object.castShadow = true;
+                                object.receiveShadow = true;
+                            }
+                        });
+
+                        parent.add(boat);
+                        console.log(`Bateau en papier ${index + 1} ajouté à l'étang`);
+                    },
+                    function (xhr) {
+                        console.log(`Bateau ${index + 1}: ${(xhr.loaded / xhr.total * 100).toFixed(0)}% chargé`);
+                    },
+                    function (error) {
+                        console.error(`Erreur de chargement du bateau ${index + 1}:`, error);
+                    }
+                );
+            });
+        }
+
+        function addLant(parent, pondRadius) {
+
+            const LantPositions = [
+                { x: -3, y: 0.4, z: -2, scale: 0.2, rotation: Math.PI / 6 },
+                { x: 1, y: 0.4, z: 4, scale: 0.2, rotation: Math.PI / 3 },
+                { x: 3, y: 0.4, z: -6, scale: 0.2, rotation: -Math.PI / 4 }
+            ];
+
+            // Charger le modèle de lanterne
+            const loader = new THREE.GLTFLoader();
+
+            LantPositions.forEach((pos, index) => {
+                loader.load(
+                    'objets_3D/Lanterne/lenterne.gltf',
+                    function (gltf) {
+                        const lant = gltf.scene;
+
+                        // Appliquer position, échelle et rotation
+                        lant.position.set(pos.x, pos.y, pos.z);
+                        lant.scale.set(pos.scale, pos.scale, pos.scale);
+                        lant.rotation.y = pos.rotation;
+
+                        // Rendre la lanterne interactive
+                        lant.userData.isInteractive = true;
+                        lant.userData.projectKey = 'modelisation';
+
+                        lant.traverse(function (object) {
+                            if (object.isMesh) {
+                                // Rendre le matériau émissif pour simuler la lumière
+                                if (object.material) {
+                                    // Cloner le matériau pour éviter de modifier l'original
+                                    if (Array.isArray(object.material)) {
+                                        object.material = object.material.map(m => m.clone());
+                                    } else {
+                                        object.material = object.material.clone();
+                                    }
+
+                                    // Si c'est la partie qui doit briller (verre, flamme, etc.)
+                                    if (object.name.includes('flame') ||
+                                        object.name.includes('light') ||
+                                        object.name.includes('glass') ||
+                                        object.name.includes('lantern')) {
+                                        object.material.emissive = new THREE.Color(0xffaa55); // Couleur ambrée
+                                        object.material.emissiveIntensity = 1.0;
+                                    }
+
+                                    // Pour toutes les parties, s'assurer que les propriétés de matériau sont correctes
+                                    object.material.roughness = 0.5;
+                                    object.material.metalness = 0.3;
+                                    object.castShadow = true;
+                                    object.receiveShadow = true;
+                                }
+                            }
+                        });
+
+                        // Ajouter une source de lumière à la lanterne
+                        const lanternLight = new THREE.PointLight(0xffaa55, 1, 5);
+                        lanternLight.position.set(0, 0.3, 0); // Ajuster selon la position de la flamme
+                        lant.add(lanternLight);
+
+                        console.log(`Lanterne ${index + 1} ajouté à l'étang`);
+                        parent.add(lant);
+                    },
+                );
+            });
+        }
+
+        function createPondSection(parent) {
+            // Surface de l'eau stylisée
+            const pondRadius = 8;
+            const pondGeometry = new THREE.CircleGeometry(pondRadius, 32);
+            const pondMaterial = new THREE.MeshStandardMaterial({
+                color: 0xb3ebf4,
+                roughness: 0.3,
+                metalness: 0.2,
+                transparent: true,
+                opacity: 0.75
+            });
+
+            const pondMesh = new THREE.Mesh(pondGeometry, pondMaterial);
+            pondMesh.rotation.x = -Math.PI / 2;
+            pondMesh.position.y = 0.05;
+            parent.add(pondMesh);
+
+            // Ajouter des nénuphars
+            createWaterLilies(parent, pondRadius);
+
+            // Ajouter des bateaux en papier à différents endroits
+            addPaperBoats(parent, pondRadius);
+
+            addLant(parent, pondRadius);
+
+            // Ajouter des libellules
+            createDragonflies(parent);
+
+
+
+            // Charger le modèle complet
+            const loader = new THREE.GLTFLoader();
+            loader.load(
+                'objets_3D/grenouille/grenouille.glb',
+                function (gltf) {
+                    // Une fois chargé, supprimer la représentation temporaire
+
+                    const grenouille = gltf.scene;
+
+                    // Positionner la grenouille sur un nénuphar ou dans l'eau
+                    grenouille.position.set(2, 0.5, 2); // À l'intérieur de l'étang
+                    grenouille.scale.set(0.2, 0.2, 0.2); // Ajuster selon la taille du modèle
+                    grenouille.rotation.y = Math.PI / 3; // Orientation
+
+                    // Rendre la grenouille interactive
+                    grenouille.userData.isInteractive = true;
+                    grenouille.userData.projectKey = 'modelisation';
+
+                    // Animer la grenouille avec un léger flottement
+                    grenouille.userData.animationParams = {
+                        initialY: grenouille.position.y,
+                        phase: Math.random() * Math.PI * 2,
+                        speed: 0.5,
+                        amplitude: 0.02
+                    };
+
+                    // Activer les ombres
+                    grenouille.traverse(function (object) {
+                        if (object.isMesh) {
+                            console.log("Mesh trouvé dans la grenouille:", object.name);
+                            object.castShadow = true;
+                            object.receiveShadow = true;
+                        }
+                    });
+
+                    parent.add(grenouille);
+                    console.log('Grenouille ajoutée à l\'étang');
+
+                    // Masquer l'indicateur de chargement
+                    document.getElementById('loading').style.display = 'none';
+                },
+                function (xhr) {
+                    // Afficher la progression du chargement
+                    if (xhr.total > 0) {
+                        const progress = Math.floor(xhr.loaded / xhr.total * 100);
+                        document.getElementById('loading').innerHTML =
+                            `Chargement de la grenouille: ${progress}%`;
+                        console.log(`Chargement du modèle: ${progress}%`);
+                    } else {
+                        // Pour les cas où xhr.total n'est pas disponible
+                        document.getElementById('loading').innerHTML =
+                            `Chargement de la grenouille: ${Math.floor(xhr.loaded / 1024)} KB chargés`;
+                    }
+                },
+                function (error) {
+                    console.error('Erreur lors du chargement de la grenouille:', error);
+                    document.getElementById('loading').innerHTML =
+                        `Erreur de chargement: ${error.message}`;
+                }
+            );
+
+
+
+            // Positionner l'étang
+            parent.position.set(20, 0, 0);
+        }
+
+        // Fonction pour créer des nénuphars
+        function createWaterLilies(parent, pondRadius) {
+            const lilyCount = 12;
+
+            for (let i = 0; i < lilyCount; i++) {
+                const lilyGroup = new THREE.Group();
+
+                // Feuille
+                const padRadius = 0.3 + Math.random() * 0.3;
+                const padGeometry = new THREE.CircleGeometry(padRadius, 16);
+                const padMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x2E7D32,
+                    roughness: 0.8,
+                    metalness: 0.1,
+                    side: THREE.DoubleSide
+                });
+
+                const pad = new THREE.Mesh(padGeometry, padMaterial);
+                pad.rotation.x = -Math.PI / 2;
+                pad.position.y = 0.08;
+
+                // Courber légèrement les bords
+                const positions = padGeometry.attributes.position.array;
+                for (let j = 0; j < positions.length; j += 3) {
+                    const x = positions[j];
+                    const z = positions[j + 2];
+                    const distFromCenter = Math.sqrt(x * x + z * z);
+                    const normalizedDist = distFromCenter / padRadius;
+
+                    if (normalizedDist > 0.6) {
+                        positions[j + 1] -= Math.pow(normalizedDist - 0.6, 2) * 0.05;
+                    }
+                }
+
+                padGeometry.computeVertexNormals();
+                pad.castShadow = true;
+                pad.receiveShadow = true;
+                lilyGroup.add(pad);
+
+                // Ajouter une fleur (optionnel)
+                if (Math.random() > 0.5) {
+                    const flowerGroup = new THREE.Group();
+
+                    // Pétales
+                    const petalCount = 6 + Math.floor(Math.random() * 3);
+                    for (let j = 0; j < petalCount; j++) {
+                        const petalGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+                        petalGeometry.scale(1, 0.2, 1);
+
+                        const petalMaterial = new THREE.MeshStandardMaterial({
+                            color: 0xFFF8E1,
+                            roughness: 0.5,
+                            metalness: 0.1
+                        });
+
+                        const petal = new THREE.Mesh(petalGeometry, petalMaterial);
+
+                        const angle = (j / petalCount) * Math.PI * 2;
+                        const petalRadius = 0.15;
+
+                        petal.position.set(
+                            Math.cos(angle) * petalRadius,
+                            0.15,
+                            Math.sin(angle) * petalRadius
+                        );
+
+                        petal.rotation.x = Math.PI / 6;
+                        petal.rotation.y = angle;
+
+                        petal.castShadow = true;
+                        flowerGroup.add(petal);
+                    }
+
+                    // Centre de la fleur
+                    const centerGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+                    const centerMaterial = new THREE.MeshStandardMaterial({
+                        color: 0xFBC02D,
+                        roughness: 0.6,
+                        metalness: 0.1
+                    });
+
+                    const center = new THREE.Mesh(centerGeometry, centerMaterial);
+                    center.position.y = 0.15;
+                    center.castShadow = true;
+                    flowerGroup.add(center);
+
+                    flowerGroup.position.set(0, 0.1, 0);
+                    lilyGroup.add(flowerGroup);
+                }
+
+                // Position sur l'étang
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.random() * (pondRadius * 0.8); // Laisser un peu d'espace sur les bords
+
+                lilyGroup.position.set(
+                    Math.cos(angle) * radius,
+                    0,
+                    Math.sin(angle) * radius
+                );
+
+                // Rotation aléatoire
+                lilyGroup.rotation.y = Math.random() * Math.PI * 2;
+
+                // Animation douce
+                lilyGroup.userData.animationParams = {
+                    initialY: lilyGroup.position.y,
+                    phase: Math.random() * Math.PI * 2,
+                    speed: 0.3 + Math.random() * 0.2,
+                    amplitude: 0.02
+                };
+
+                parent.add(lilyGroup);
+            }
+        }
+
+        // Fonction pour créer des libellules
+        function createDragonflies(parent) {
+            const count = 5;
+
+            for (let i = 0; i < count; i++) {
+                const dragonfly = new THREE.Group();
+
+                // Corps
+                const bodyGeometry = new THREE.CylinderGeometry(0.02, 0.04, 0.3, 8);
+                const bodyMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x407aec,
+                    roughness: 0.6,
+                    metalness: 0.3
+                });
+
+                const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+                body.rotation.x = Math.PI / 2;
+                dragonfly.add(body);
+
+                // Ailes
+                const wingShape = new THREE.Shape();
+                wingShape.moveTo(0, 0);
+                wingShape.bezierCurveTo(0.1, 0.1, 0.3, 0.1, 0.4, 0);
+                wingShape.bezierCurveTo(0.3, -0.05, 0.1, -0.05, 0, 0);
+
+                const wingGeometry = new THREE.ShapeGeometry(wingShape);
+                const wingMaterial = new THREE.MeshStandardMaterial({
+                    color: 0xE1F5FE,
+                    transparent: true,
+                    opacity: 0.5,
+                    side: THREE.DoubleSide,
+                    roughness: 0.3,
+                    metalness: 0.1
+                });
+
+                // Ailes gauches
+                const leftWing1 = new THREE.Mesh(wingGeometry, wingMaterial);
+                leftWing1.position.set(-0.05, 0, -0.05);
+                leftWing1.rotation.y = Math.PI / 2;
+
+                const leftWing2 = new THREE.Mesh(wingGeometry, wingMaterial);
+                leftWing2.position.set(-0.05, 0, 0.1);
+                leftWing2.rotation.y = Math.PI / 2;
+                leftWing2.scale.set(0.8, 0.8, 0.8);
+
+                // Ailes droites
+                const rightWing1 = new THREE.Mesh(wingGeometry, wingMaterial);
+                rightWing1.position.set(0.05, 0, -0.05);
+                rightWing1.rotation.y = -Math.PI / 2;
+
+                const rightWing2 = new THREE.Mesh(wingGeometry, wingMaterial);
+                rightWing2.position.set(0.05, 0, 0.1);
+                rightWing2.rotation.y = -Math.PI / 2;
+                rightWing2.scale.set(0.8, 0.8, 0.8);
+
+                dragonfly.add(leftWing1, leftWing2, rightWing1, rightWing2);
+
+                // Animation des ailes
+                leftWing1.userData.animationParams = {
+                    initialRotation: { z: leftWing1.rotation.z },
+                    phase: 0,
+                    speed: 30,
+                    amplitude: 0.3
+                };
+
+                leftWing2.userData.animationParams = {
+                    initialRotation: { z: leftWing2.rotation.z },
+                    phase: 0.2,
+                    speed: 30,
+                    amplitude: 0.25
+                };
+
+                rightWing1.userData.animationParams = {
+                    initialRotation: { z: rightWing1.rotation.z },
+                    phase: 0,
+                    speed: 30,
+                    amplitude: 0.3
+                };
+
+                rightWing2.userData.animationParams = {
+                    initialRotation: { z: rightWing2.rotation.z },
+                    phase: 0.2,
+                    speed: 30,
+                    amplitude: 0.25
+                };
+
+                // Positionner la libellule
+                dragonfly.position.set(
+                    (Math.random() - 0.5) * 12,
+                    1.5 + Math.random() * 2,
+                    (Math.random() - 0.5) * 12
+                );
+
+                // Paramètres d'animation pour le vol
+                dragonfly.userData.flightParams = {
+                    center: dragonfly.position.clone(),
+                    radius: 2 + Math.random() * 3,
+                    height: dragonfly.position.y,
+                    speed: 0.2 + Math.random() * 0.3,
+                    phase: Math.random() * Math.PI * 2,
+                    direction: new THREE.Vector3(0, 0, 0)
+                };
+
+                parent.add(dragonfly);
+            }
+        }
+
+        // Fonction pour créer la colline fleurie
+        function createHillSection(parent) {
+            // Créer une colline
+            createHillMesh(parent);
+
+            // Ajouter des fleurs sur la colline
+            createHillFlowers(parent);
+
+            // Ajouter une maquette de niveau
+            createLevelModel(parent);
+
+            // Ajouter une longue-vue interactive
+            createTelescope(parent);
+
+            // Positionner la colline (position ajustée pour mieux faire face à la caméra)
+            parent.position.set(-20, 0, -5); // Ajustement de la hauteur et de la position
+            parent.rotation.set(0, 0, 0);  // Rotation pour mieux orienter la colline
+        }
+
+        // Fonction pour créer la forme de la colline
+        function createHillMesh(parent) {
+            // Créer une colline avec plus de détails et de variation
+            let hillGeometry = new THREE.SphereGeometry(10, 32, 32);//THREE.SphereGeometry(10, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+
+            // Déformer la géométrie pour une forme plus naturelle
+            let positions = hillGeometry.attributes.position.array;
+            for (let i = 0; i < positions.length; i += 3) {
+                let x = positions[i];
+                let y = positions[i + 1];
+                let z = positions[i + 2];
+
+                // Varier la hauteur en fonction de la position
+                let distFromCenter = Math.sqrt(x * x + z * z);
+                if (distFromCenter > 0) {
+                    let noise = Math.sin(x * 0.5) * Math.cos(z * 0.3) * 0.3;
+                    positions[i + 1] += noise;
+                }
+            }
+
+            hillGeometry.computeVertexNormals();
+            hillGeometry.scale(1, 1, 1);
+
+            // Matériau avec effet aquarelle
+            let hillMaterial = new THREE.MeshStandardMaterial({
+                color: 0xcfe5b7,
+                roughness: 0.9,
+                metalness: 0.05
+            });
+
+            let hillMesh = new THREE.Mesh(hillGeometry, hillMaterial);
+            hillMesh.rotation.x = -Math.PI / 2;
+            hillMesh.rotation.y = -Math.PI;
+            hillMesh.position.y = -6;
+            hillMesh.receiveShadow = true;
+
+            parent.add(hillMesh);
+        }
+
+        // Fonction pour créer des fleurs sur la colline
+        function createHillFlowers(parent) {
+            const flowerCount = 100;
+            const flowerColors = [
+                0xEC407A, // Rose
+                0x7E57C2, // Violet
+                0x42A5F5, // Bleu
+                0xFFCA28, // Jaune
+                0x66BB6A  // Vert
+            ];
+
+            for (let i = 0; i < flowerCount; i++) {
+                const flowerGroup = new THREE.Group();
+
+                // Tige
+                const stemHeight = 0.2 + Math.random() * 0.3;
+                const stemGeometry = new THREE.CylinderGeometry(0.01, 0.01, stemHeight, 6);
+                const stemMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x7CB342,
+                    roughness: 0.8,
+                    metalness: 0.1
+                });
+
+                const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+                stem.position.y = stemHeight / 2;
+                stem.castShadow = true;
+                flowerGroup.add(stem);
+
+                // Fleur (plusieurs types possibles)
+                const flowerType = Math.floor(Math.random() * 3);
+                const colorIndex = Math.floor(Math.random() * flowerColors.length);
+
+                if (flowerType === 0) {
+                    // Type 1: Fleur ronde simple
+                    const flowerGeometry = new THREE.SphereGeometry(0.06, 8, 8);
+                    const flowerMaterial = new THREE.MeshStandardMaterial({
+                        color: flowerColors[colorIndex],
+                        roughness: 0.6,
+                        metalness: 0.1
+                    });
+
+                    const flower = new THREE.Mesh(flowerGeometry, flowerMaterial);
+                    flower.position.y = stemHeight;
+                    flower.castShadow = true;
+                    flowerGroup.add(flower);
+
+                    // Petit centre jaune
+                    const centerGeometry = new THREE.SphereGeometry(0.02, 8, 8);
+                    const centerMaterial = new THREE.MeshStandardMaterial({
+                        color: 0xFFEB3B,
+                        roughness: 0.5,
+                        metalness: 0.1
+                    });
+
+                    const center = new THREE.Mesh(centerGeometry, centerMaterial);
+                    center.position.y = stemHeight + 0.02;
+                    center.castShadow = true;
+                    flowerGroup.add(center);
+
+                } else if (flowerType === 1) {
+                    // Type 2: Fleur avec pétales
+                    const petalCount = 5 + Math.floor(Math.random() * 3);
+
+                    for (let j = 0; j < petalCount; j++) {
+                        const petalGeometry = new THREE.SphereGeometry(0.04, 8, 8);
+                        petalGeometry.scale(1.5, 0.3, 1);
+
+                        const petalMaterial = new THREE.MeshStandardMaterial({
+                            color: flowerColors[colorIndex],
+                            roughness: 0.7,
+                            metalness: 0.1
+                        });
+
+                        const petal = new THREE.Mesh(petalGeometry, petalMaterial);
+
+                        const angle = (j / petalCount) * Math.PI * 2;
+                        const radius = 0.05;
+
+                        petal.position.set(
+                            Math.cos(angle) * radius,
+                            stemHeight,
+                            Math.sin(angle) * radius
+                        );
+
+                        petal.rotation.x = Math.PI / 3;
+                        petal.rotation.y = angle;
+
+                        petal.castShadow = true;
+                        flowerGroup.add(petal);
+                    }
+
+                    // Centre
+                    const centerGeometry = new THREE.SphereGeometry(0.03, 8, 8);
+                    const centerMaterial = new THREE.MeshStandardMaterial({
+                        color: 0xFFEB3B,
+                        roughness: 0.5,
+                        metalness: 0.1
+                    });
+
+                    const center = new THREE.Mesh(centerGeometry, centerMaterial);
+                    center.position.y = stemHeight;
+                    center.castShadow = true;
+                    flowerGroup.add(center);
+
+                } else {
+                    // Type 3: Petite touffes d'herbes
+                    for (let j = 0; j < 5; j++) {
+                        const bladeGeometry = new THREE.CylinderGeometry(0.005, 0.001, 0.2, 3);
+                        const bladeMaterial = new THREE.MeshStandardMaterial({
+                            color: 0x8BC34A,
+                            roughness: 0.8,
+                            metalness: 0.1
+                        });
+
+                        const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
+
+                        const angle = (j / 5) * Math.PI * 2 + Math.random() * 0.5;
+                        const tilt = Math.PI / 6 + Math.random() * (Math.PI / 6);
+
+                        blade.rotation.x = Math.sin(angle) * tilt;
+                        blade.rotation.z = Math.cos(angle) * tilt;
+                        blade.position.y = stemHeight - 0.1;
+
+                        blade.castShadow = true;
+                        flowerGroup.add(blade);
+                    }
+                }
+
+                // Positionner aléatoirement sur la colline
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.random() * 9; // Un peu moins que le rayon de la colline
+
+                // Calculer la hauteur sur la colline
+                const x = Math.cos(angle) * radius;
+                const z = Math.sin(angle) * radius;
+                const heightOnHill = (Math.sqrt(100 - (x * x + z * z)) - 10 + Math.sin(x * 0.5) * Math.cos(z * 0.3) * 0.3) + 4;
+
+                flowerGroup.position.set(x, heightOnHill, z);
+
+                // Orientation perpendiculaire à la surface
+                flowerGroup.lookAt(new THREE.Vector3(
+                    flowerGroup.position.x * 2,
+                    flowerGroup.position.y + 0,
+                    flowerGroup.position.z * 2
+                ));
+
+                // Animation subtile
+                flowerGroup.userData.animationParams = {
+                    initialRotation: {
+                        x: flowerGroup.rotation.x,
+                        z: flowerGroup.rotation.z
+                    },
+                    phase: Math.random() * Math.PI * 2,
+                    speed: 0.5 + Math.random() * 0.5,
+                    amplitude: 0.03
+                };
+                parent.add(flowerGroup);
+            }
+        }
+
+        // Fonction pour créer une maquette de niveau
+        function createLevelModel(parent) {
+            const modelGroup = new THREE.Group();
+
+            // Base de la maquette
+            const baseGeometry = new THREE.CylinderGeometry(2.5, 2.5, 0.2, 32);
+            const baseMaterial = new THREE.MeshStandardMaterial({
+                color: 0xBDBDBD,
+                roughness: 0.8,
+                metalness: 0.2
+            });
+
+            const base = new THREE.Mesh(baseGeometry, baseMaterial);
+            base.position.y = 0.1;
+            base.receiveShadow = true;
+            modelGroup.add(base);
+
+            // Terrain de la maquette
+            const terrainGeometry = new THREE.CylinderGeometry(2.3, 2.3, 0.05, 32);
+
+            // Déformer pour créer du relief
+            const positions = terrainGeometry.attributes.position.array;
+            for (let i = 0; i < positions.length; i += 3) {
+                const x = positions[i];
+                const z = positions[i + 2];
+
+                // Ajouter du relief variable
+                if (Math.sqrt(x * x + z * z) < 2.3) {
+                    positions[i + 1] += Math.sin(x * 5) * Math.cos(z * 5) * 0.1;
+                }
+            }
+
+            terrainGeometry.computeVertexNormals();
+
+            const terrainMaterial = new THREE.MeshStandardMaterial({
+                color: 0xd8ecc9,
+                roughness: 0.9,
+                metalness: 0.1
+            });
+
+            const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
+            terrain.position.y = 0.25;
+            terrain.receiveShadow = true;
+            terrain.castShadow = true;
+            modelGroup.add(terrain);
+
+            // Petit château/structure
+            const castleGroup = new THREE.Group();
+
+            // Base du château
+            const castleBaseGeometry = new THREE.BoxGeometry(0.5, 0.2, 0.5);
+            const castleBaseMaterial = new THREE.MeshStandardMaterial({
+                color: 0xE0E0E0,
+                roughness: 0.9,
+                metalness: 0.1
+            });
+
+            const castleBase = new THREE.Mesh(castleBaseGeometry, castleBaseMaterial);
+            castleBase.position.y = 0.1;
+            castleBase.castShadow = true;
+            castleBase.receiveShadow = true;
+            castleGroup.add(castleBase);
+
+            // Tours
+            const towerPositions = [
+                [-0.2, 0, -0.2],
+                [0.2, 0, -0.2],
+                [-0.2, 0, 0.2],
+                [0.2, 0, 0.2]
+            ];
+
+            towerPositions.forEach(pos => {
+                const towerGeometry = new THREE.CylinderGeometry(0.05, 0.07, 0.4, 8);
+                const towerMaterial = new THREE.MeshStandardMaterial({
+                    color: 0xEEEEEE,
+                    roughness: 0.8,
+                    metalness: 0.1
+                });
+
+                const tower = new THREE.Mesh(towerGeometry, towerMaterial);
+                tower.position.set(pos[0], 0.3, pos[1]);
+                tower.castShadow = true;
+                castleGroup.add(tower);
+
+                // Toit conique
+                const roofGeometry = new THREE.ConeGeometry(0.08, 0.15, 8);
+                const roofMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x4FC3F7,
+                    roughness: 0.7,
+                    metalness: 0.2
+                });
+
+                const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+                roof.position.y = 0.475;
+                roof.castShadow = true;
+                tower.add(roof);
+            });
+
+            castleGroup.position.set(0, 0.3, 0);
+            castleGroup.userData.isInteractive = true;
+            castleGroup.userData.projectKey = 'levelDesign';
+            castleGroup.userData.showVideoButton = true; // Propriété pour montrer le bouton de vidéo
+            modelGroup.add(castleGroup);
+
+            // Petits arbres miniatures
+            for (let i = 0; i < 20; i++) {
+                const treeGroup = new THREE.Group();
+
+                // Tronc
+                const trunkGeometry = new THREE.CylinderGeometry(0.01, 0.015, 0.08, 5);
+                const trunkMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x8D6E63,
+                    roughness: 0.9,
+                    metalness: 0.1
+                });
+
+                const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+                trunk.position.y = 0.04;
+                trunk.castShadow = true;
+                treeGroup.add(trunk);
+
+                // Feuillage
+                const foliageGeometry = new THREE.SphereGeometry(0.04, 8, 8);
+                const foliageMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x66BB6A,
+                    roughness: 0.8,
+                    metalness: 0.1
+                });
+
+                const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
+                foliage.position.y = 0.1;
+                foliage.castShadow = true;
+                treeGroup.add(foliage);
+
+                // Position sur la maquette
+                const angle = Math.random() * Math.PI * 2;
+                const radius = 0.5 + Math.random() * 1.5;
+
+                const x = Math.cos(angle) * radius;
+                const z = Math.sin(angle) * radius;
+
+                // Ajuster la hauteur en fonction de la position sur le terrain
+                const heightOnTerrain = Math.sin(x * 5) * Math.cos(z * 5) * 0.1;
+
+                treeGroup.position.set(x, 0.3 + heightOnTerrain, z);
+                modelGroup.add(treeGroup);
+            }
+
+            // Petite rivière bleue
+            const riverShape = new THREE.Shape();
+            riverShape.moveTo(-2, 0);
+            riverShape.bezierCurveTo(-1.8, 0.5, -1, 0.8, 0, 0.5);
+            riverShape.bezierCurveTo(1, 0.2, 1.5, -0.3, 2, -0.5);
+            riverShape.lineTo(2, -0.6);
+            riverShape.bezierCurveTo(1.5, -0.4, 1, -0.1, 0, 0.2);
+            riverShape.bezierCurveTo(-1, -0.1, -1.8, 0.2, -2, -0.3);
+            riverShape.lineTo(-2, 0);
+
+            const riverGeometry = new THREE.ShapeGeometry(riverShape);
+            const riverMaterial = new THREE.MeshStandardMaterial({
+                color: 0x4FC3F7,
+                roughness: 0.4,
+                metalness: 0.3,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            const river = new THREE.Mesh(riverGeometry, riverMaterial);
+            river.rotation.x = -Math.PI / 2;
+            river.position.y = 0.28;
+            river.receiveShadow = true;
+            modelGroup.add(river);
+
+            // Positionner la maquette sur un point élevé de la colline
+            modelGroup.position.set(0, 4, 0);
+
+            parent.add(modelGroup);
+        }
+
+        // Fonction pour créer une longue-vue interactive
+        function createTelescope(parent) {
+            const telescopeGroup = new THREE.Group();
+
+            // Base/trépied
+            const baseGeometry = new THREE.CylinderGeometry(0.2, 0.3, 0.1, 16);
+            const baseMaterial = new THREE.MeshStandardMaterial({
+                color: 0x8D6E63,
+                roughness: 0.9,
+                metalness: 0.1
+            });
+
+            const base = new THREE.Mesh(baseGeometry, baseMaterial);
+            base.castShadow = true;
+            telescopeGroup.add(base);
+
+            // Pieds du trépied
+            for (let i = 0; i < 3; i++) {
+                const legGeometry = new THREE.CylinderGeometry(0.03, 0.02, 0.8, 8);
+                const legMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x795548,
+                    roughness: 0.9,
+                    metalness: 0.1
+                });
+
+                const leg = new THREE.Mesh(legGeometry, legMaterial);
+
+                const angle = (i / 3) * Math.PI * 2;
+                const radius = 0.2;
+
+                leg.position.set(
+                    Math.cos(angle) * radius,
+                    -0.4,
+                    Math.sin(angle) * radius
+                );
+
+                leg.rotation.x = Math.PI / 6;
+                leg.rotation.y = -angle;
+
+                leg.castShadow = true;
+                telescopeGroup.add(leg);
+            }
+
+            // Tube principal de la longue-vue
+            const tubeGeometry = new THREE.CylinderGeometry(0.08, 0.1, 0.5, 16);
+            const tubeMaterial = new THREE.MeshStandardMaterial({
+                color: 0xF57F17,
+                roughness: 0.5,
+                metalness: 0.5
+            });
+
+            const tube = new THREE.Mesh(tubeGeometry, tubeMaterial);
+            tube.rotation.x = Math.PI / 3;
+            tube.position.y = 0.2;
+            tube.castShadow = true;
+            telescopeGroup.add(tube);
+
+            // Oculaire
+            const eyepieceGeometry = new THREE.CylinderGeometry(0.03, 0.08, 0.1, 16);
+            const eyepieceMaterial = new THREE.MeshStandardMaterial({
+                color: 0x212121,
+                roughness: 0.5,
+                metalness: 0.7
+            });
+
+            const eyepiece = new THREE.Mesh(eyepieceGeometry, eyepieceMaterial);
+            eyepiece.position.set(0, 0.4, 0.2);
+            eyepiece.rotation.x = Math.PI / 3;
+            eyepiece.castShadow = true;
+            telescopeGroup.add(eyepiece);
+
+            // Objectif (lentille)
+            const lensGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.02, 16);
+            const lensMaterial = new THREE.MeshStandardMaterial({
+                color: 0x81D4FA,
+                roughness: 0.2,
+                metalness: 0.8,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            const lens = new THREE.Mesh(lensGeometry, lensMaterial);
+            lens.position.set(0, 0, -0.24);
+            tube.add(lens);
+
+            // Rendre la longue-vue interactive
+            telescopeGroup.userData.isInteractive = true;
+            telescopeGroup.userData.projectKey = 'telescope';
+            telescopeGroup.userData.showVideoButton = true; // Propriété pour montrer le bouton de vidéo
+
+            // Positionnement sur la colline
+            telescopeGroup.position.set(5, 3, 3);
+            // Orienter vers la maquette
+            telescopeGroup.lookAt(new THREE.Vector3(0, 4, 0));
+
+            telescopeGroup.userData.onInteract = function () {
+                // Cette fonction sera appelée quand on clique sur la longue-vue
+                // Zoom sur la maquette du niveau
+                const zoomPosition = new THREE.Vector3(-18, 5, -5);
+                const zoomTarget = new THREE.Vector3(-20, 4, -5); // Vise la maquette
+                animateCamera(zoomPosition, zoomTarget);
+            };
+
+            parent.add(telescopeGroup);
+        }
+
+        // Configuration du raycaster pour les interactions
+        let raycaster, mouse;
+
+        function setupRaycaster() {
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            window.addEventListener('mousemove', onMouseMove, false);
+            window.addEventListener('click', onMouseClick, false);
+        }
+
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        }
+
+        function onMouseClick(event) {
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children, true);
+
+            if (intersects.length > 0) {
+                // Find the interactable parent object
+                let obj = intersects[0].object;
+                let interactiveParent = null;
+
+                // Traverse up the parent chain to find an interactive object
+                while (obj) {
+                    if (obj.userData && obj.userData.isInteractive) {
+                        interactiveParent = obj;
+                        break;
+                    }
+                    obj = obj.parent;
+                }
+
+                // If we found an interactive parent
+                if (interactiveParent) {
+                    // Vérifier si la fonction onInteract existe avant de l'appeler
+                    if (typeof interactiveParent.userData.onInteract === 'function') {
+                        interactiveParent.userData.onInteract();
+                    }
+
+                    // Afficher les infos du projet si une clé existe
+                    if (interactiveParent.userData.projectKey) {
+                        const projectKey = interactiveParent.userData.projectKey;
+                        showProjectInfo(projectKey, interactiveParent);
+                    }
+                }
+            }
+        }
+
+        function showProjectInfo(projectKey, interactiveObject) {
+            const project = projects[projectKey];
+
+            if (project) {
+                document.querySelector('#project-info h3').textContent = project.title;
+                document.querySelector('#project-info p').textContent = project.description;
+                projectInfo.classList.add('visible');
+
+                // Supprimer d'abord tout bouton existant pour éviter les doublons
+                const infoPanel = document.querySelector('#project-info');
+                const existingButton = infoPanel.querySelector('button.nav-button');
+                if (existingButton) {
+                    existingButton.remove();
+                }
+
+                // Si l'objet interactif a la propriété showVideoButton, ajouter un bouton pour voir la vidéo
+                if (interactiveObject && interactiveObject.userData.showVideoButton) {
+                    // Ajouter un bouton pour voir la vidéo
+                    const viewVideoBtn = document.createElement('button');
+                    viewVideoBtn.textContent = "Voir la vidéo";
+                    viewVideoBtn.className = "nav-button";
+                    viewVideoBtn.style.marginTop = "15px";
+                    viewVideoBtn.addEventListener('click', () => {
+                        projectInfo.classList.remove('visible');
+                        showVideo();
+                    });
+
+                    // Ajouter le bouton au panneau d'info
+                    infoPanel.appendChild(viewVideoBtn);
+                }
+            }
+        }
+
+        // Navigation vers une section spécifique
+        function navigateToSection(section) {
+            projectInfo.classList.remove('visible');
+
+            let targetPosition, targetLookAt;
+
+            switch (section) {
+                case 'hub':
+                    targetPosition = new THREE.Vector3(0, 3, 8);
+                    targetLookAt = sections.hub.position.clone();
+                    break;
+                case 'pond':
+                    targetPosition = new THREE.Vector3(20, 3, 8);
+                    targetLookAt = sections.pond.position.clone();
+                    break;
+                case 'hill':
+                    targetPosition = new THREE.Vector3(-20, 5, 8);
+                    targetLookAt = sections.hill.position.clone();
+                    break;
+                default:
+                    return;
+            }
+
+            animateCamera(targetPosition, targetLookAt);
+            currentSection = section;
+        }
+
+        function animateCamera(targetPosition, targetLookAt) {
+            const startPosition = camera.position.clone();
+            const startTarget = controls.target.clone();
+
+            const duration = 1500; // ms
+            const startTime = Date.now();
+
+            function updateCamera() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Fonction d'easing
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+
+                camera.position.lerpVectors(startPosition, targetPosition, easeProgress);
+                controls.target.lerpVectors(startTarget, targetLookAt, easeProgress);
+                controls.update();
+
+                if (progress < 1) {
+                    requestAnimationFrame(updateCamera);
+                }
+            }
+
+            updateCamera();
+        }
+
+        // Redimensionnement de la fenêtre
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Fonction pour mettre en évidence les objets interactifs
+        function highlightInteractiveObjects() {
+            // Réinitialiser tous les objets
+            scene.traverse(object => {
+                if (object.userData && object.userData.isInteractive && object.userData.isHighlighted) {
+                    object.traverse(child => {
+                        if (child.isMesh && child.material && child.userData.originalEmissive) {
+                            child.material.emissive.copy(child.userData.originalEmissive);
+                            child.material.emissiveIntensity = child.userData.originalEmissiveIntensity || 0;
+                        }
+                    });
+                    object.userData.isHighlighted = false;
+                }
+            });
+
+            // Mettre en évidence l'objet sous la souris
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children, true);
+
+            if (intersects.length > 0) {
+                let currentObject = intersects[0].object;
+                let interactiveObject = null;
+
+                while (currentObject && !interactiveObject) {
+                    if (currentObject.userData && currentObject.userData.isInteractive) {
+                        interactiveObject = currentObject;
+                    }
+                    currentObject = currentObject.parent;
+                }
+
+                if (interactiveObject) {
+                    interactiveObject.traverse(child => {
+                        if (child.isMesh && child.material) {
+                            // Make sure material is properly initialized and has an emissive property
+                            if (!child.material.emissive) {
+                                // If material doesn't have emissive property, it might be a basic material
+                                // Skip this object or convert to a material that supports emissive
+                                return;
+                            }
+
+                            // Sauvegarder l'émissive originale
+                            if (!child.userData.originalEmissive) {
+                                child.userData.originalEmissive = child.material.emissive.clone();
+                                child.userData.originalEmissiveIntensity = child.material.emissiveIntensity || 0;
+                            }
+
+                            // Appliquer un effet de surbrillance
+                            child.material.emissive.set(0xa0c59c);
+                            child.material.emissiveIntensity = 0.3;
+                        }
+                    });
+                    interactiveObject.userData.isHighlighted = true;
+
+                    // Changer le curseur en pointer
+                    document.body.style.cursor = 'pointer';
+                } else {
+                    document.body.style.cursor = 'auto';
+                }
+            } else {
+                document.body.style.cursor = 'auto';
+            }
+        }
+
+        // Mise à jour des animations
+        function updateAnimations(delta) {
+            // Animation des objets avec paramètres d'animation
+            scene.traverse(object => {
+                // Animation de flottement vertical
+                if (object.userData.animationParams) {
+                    const params = object.userData.animationParams;
+
+                    if (params.initialY !== undefined) {
+                        const time = Date.now() * 0.001;
+                        object.position.y = params.initialY + Math.sin(time * params.speed + params.phase) * params.amplitude;
+                    }
+
+                    // Animation de balancement
+                    if (params.initialRotation) {
+                        const time = Date.now() * 0.001;
+                        object.rotation.x = params.initialRotation.x + Math.sin(time * params.speed + params.phase) * params.amplitude;
+                        object.rotation.z = params.initialRotation.z + Math.cos(time * params.speed + params.phase) * params.amplitude;
+                    }
+                }
+
+                // Modèles flottants
+                if (object.userData.floatParams) {
+                    const params = object.userData.floatParams;
+                    const time = Date.now() * 0.001;
+
+                    object.position.y = params.initialY + Math.sin(time * params.speed + params.phase) * params.amplitude;
+                    object.rotation.y += delta * 0.2; // Rotation lente
+                }
+
+                // Vol des libellules
+                if (object.userData.flightParams) {
+                    const params = object.userData.flightParams;
+                    const time = Date.now() * 0.001;
+
+                    // Mouvement orbital avec variation de hauteur
+                    object.position.x = params.center.x + Math.cos(time * params.speed + params.phase) * params.radius;
+                    object.position.z = params.center.z + Math.sin(time * params.speed + params.phase) * params.radius;
+                    object.position.y = params.height + Math.sin(time * params.speed * 2) * 0.5;
+
+                    // Direction du mouvement
+                    params.direction.set(
+                        -Math.sin(time * params.speed + params.phase) * params.radius * params.speed,
+                        Math.cos(time * params.speed * 2) * 0.5 * params.speed * 2,
+                        Math.cos(time * params.speed + params.phase) * params.radius * params.speed
+                    );
+
+                    // Orienter la libellule dans la direction du mouvement
+                    if (params.direction.length() > 0.01) {
+                        const lookAt = new THREE.Vector3().addVectors(object.position, params.direction);
+                        object.lookAt(lookAt);
+                        // Ajustement pour aligner correctement
+                        object.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 2);
+                    }
+                }
+
+                // Animation des pétales qui tombent
+                if (object.userData.velocity) {
+                    const vel = object.userData.velocity;
+
+                    // Appliquer la vélocité
+                    object.position.x += vel.x * delta;
+                    object.position.y += vel.y * delta;
+                    object.position.z += vel.z * delta;
+
+                    // Rotation
+                    if (object.userData.rotation) {
+                        const rot = object.userData.rotation;
+                        object.rotation.x += rot.x;
+                        object.rotation.y += rot.y;
+                        object.rotation.z += rot.z;
+                    }
+
+                    // Réinitialiser si trop bas
+                    if (object.position.y < 0) {
+                        object.position.y = object.userData.initialY;
+                        object.position.x = (Math.random() - 0.5) * 30;
+                        object.position.z = (Math.random() - 0.5) * 30;
+                    }
+                }
+            });
+        }
+
+        // Obtenir les références aux éléments
+        const videoContainer = document.getElementById('video-container');
+        const projectVideo = document.getElementById('project-video');
+
+        // Fonction pour afficher la vidéo
+        function showVideo() {
+            videoContainer.classList.add('visible');
+            projectVideo.play();
+        }
+
+        // Fonction pour masquer la vidéo
+        function hideVideo() {
+            videoContainer.classList.remove('visible');
+            projectVideo.pause();
+        }
+
+        // Ajouter l'écouteur d'événement au bouton de fermeture
+        document.querySelector('#video-container .close-btn').addEventListener('click', hideVideo);
+
+        // Animation
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const delta = clock.getDelta();
+
+            // Mise à jour des animations
+            updateAnimations(delta);
+
+            // Mise à jour des contrôles
+            controls.update();
+
+            // Détection des objets interactifs
+            highlightInteractiveObjects();
+
+            renderer.render(scene, camera);
+        }
+
+        // Gestion des erreurs
+        window.addEventListener('error', function (e) {
+            console.error('Erreur détectée:', e.error);
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loading').innerHTML = 'Erreur: ' + e.error.message + '<br>Vérifiez la console pour plus de détails.';
+        });
+
+        // Démarrer l'application
+        init();
+
+    </script>
+</body>
+
+</html>
